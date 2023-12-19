@@ -9,9 +9,9 @@ using System.IO;
 using System.IO.Streams;
 
 using Newtonsoft.Json;
-using System.Data.SQLite;
 using Newtonsoft.Json.Bson;
 using System.Runtime.Serialization.Formatters.Binary;
+using Microsoft.Data.Sqlite;
 
 namespace PerPlayerLoot
 {
@@ -32,7 +32,7 @@ namespace PerPlayerLoot
 
         public static HashSet<(int, int)> playerPlacedChests = new HashSet<(int, int)>(); // tile x, y of player placed chests
 
-        private static string connString = "Data Source=perplayerloot.sqlite;Version=3;";
+        private static string connString = "Data Source=tshock/perplayerloot.sqlite";
 
         public FakeChestDatabase() { }
 
@@ -45,7 +45,7 @@ namespace PerPlayerLoot
         public void CreateTables()
         {
             TSPlayer.Server.SendInfoMessage("Setting up per-player chests database...");
-            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
                 conn.Open();
 
@@ -66,7 +66,7 @@ namespace PerPlayerLoot
                     );
                 ";
 
-                using (var cmd = new SQLiteCommand(sql, conn)) 
+                using (var cmd = new SqliteCommand(sql, conn)) 
                     cmd.ExecuteNonQuery();
 
             }
@@ -77,14 +77,14 @@ namespace PerPlayerLoot
             TSPlayer.Server.SendInfoMessage("Loading per-player loot chest inventories...");
             int count = 0;
 
-            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
                 conn.Open();
 
                 // load loot chests
-                using (var cmd = new SQLiteCommand("SELECT id, playerUuid, x, y, items FROM chests;", conn))
+                using (var cmd = new SqliteCommand("SELECT id, playerUuid, x, y, items FROM chests;", conn))
                 {
-                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    SqliteDataReader reader = cmd.ExecuteReader();
 
                     while (reader.Read())
                     {
@@ -138,9 +138,9 @@ namespace PerPlayerLoot
                 }
 
                 // load tile exclusions
-                using (var cmd = new SQLiteCommand("SELECT x, y FROM placed;", conn))
+                using (var cmd = new SqliteCommand("SELECT x, y FROM placed;", conn))
                 {
-                    SQLiteDataReader reader = cmd.ExecuteReader();
+                    SqliteDataReader reader = cmd.ExecuteReader();
 
                     playerPlacedChests.Clear();
 
@@ -162,7 +162,7 @@ namespace PerPlayerLoot
             TSPlayer.Server.SendInfoMessage("Saving per-player loot chest inventories...");
             int count = 0;
 
-            using (SQLiteConnection conn = new SQLiteConnection(connString))
+            using (SqliteConnection conn = new SqliteConnection(connString))
             {
                 conn.Open();
 
@@ -198,7 +198,7 @@ namespace PerPlayerLoot
 
                         var sql = @"REPLACE INTO chests (id, playerUuid, x, y, items) VALUES (@id, @playerUuid, @x, @y, @items);";
 
-                        using (var cmd = new SQLiteCommand(sql, conn))
+                        using (var cmd = new SqliteCommand(sql, conn))
                         {
                             cmd.Parameters.AddWithValue("@id", chestId);
                             cmd.Parameters.AddWithValue("@playerUuid", playerUuid);
@@ -217,7 +217,7 @@ namespace PerPlayerLoot
                 {
                     var sql = @"REPLACE INTO placed (x, y) VALUES (@x, @y);";
 
-                    using (var cmd = new SQLiteCommand(sql, conn))
+                    using (var cmd = new SqliteCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@x", x);
                         cmd.Parameters.AddWithValue("@y", y);

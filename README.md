@@ -23,9 +23,13 @@ there for you to find!
 
 ## Installation
 1. Copy `PerPlayerLoot.dll` into the `ServerPlugins` directory of your TShock
-   server.
-2. Copy `System.Data.SQLite.dll` into the `bin` directory of your TShock server.
+   server. You can download this from the [GitHub Releases](https://github.com/xxcodianxx/PerPlayerLoot/releases/) of this repository.
 3. Start a new world from scratch (yes, this is important, read below) and play!
+
+> [!WARNING]
+> If migrating from version `1.0` of the plugin, you need to move `perplayerloot.sqlite`
+> from the server root directory to the `tshock` folder. You should see the file as `tshock/perplayerloot.sqlite`.
+> If you do not do this, your existing world chests will behave like loot chests!
 
 ## How it Works
 This plugin aims to not modify the server-side chest state
