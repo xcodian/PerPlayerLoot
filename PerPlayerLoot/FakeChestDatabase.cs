@@ -154,12 +154,14 @@ namespace PerPlayerLoot
                 }
             }
 
-            TSPlayer.Server.SendSuccessMessage($"Loaded {count} loot chest inventories, {playerPlacedChests.Count} player-placed chests.");
+            // TSPlayer.Server.SendSuccessMessage($"Loaded {count} loot chest inventories, {playerPlacedChests.Count} player-placed chests.");
+            //I think it's too frequent, I suggest commenting out.
         }
 
-        public void SaveFakeChests()
+        public void SaveFakeChests(string? PlayerUuid = null, int? ChestId = null)
         {
-            TSPlayer.Server.SendInfoMessage("Saving per-player loot chest inventories...");
+            //TSPlayer.Server.SendInfoMessage("Saving per-player loot chest inventories...");
+            //I think it's too frequent, I suggest commenting out.
             int count = 0;
 
             using (SqliteConnection conn = new SqliteConnection(connString))
@@ -169,11 +171,21 @@ namespace PerPlayerLoot
                 foreach (KeyValuePair<string, Dictionary<int, Chest>> playerEntry in fakeChestsMap)
                 {
                     string playerUuid = playerEntry.Key;
+                    // If a player UUID is specified and the current player does not match, then skip
+                    if (PlayerUuid != null && playerUuid != PlayerUuid)
+                    {
+                        continue;
+                    }
                     var playerChests = playerEntry.Value;
 
                     foreach (KeyValuePair<int, Chest> chestEntry in playerChests)
                     {
                         int chestId = chestEntry.Key;
+                        // If a chest ID is specified and the current chest does not match, then skip
+                        if (ChestId != null && chestId != ChestId)
+                        {
+                            continue;
+                        }
                         var chest = chestEntry.Value;
 
                         List<JItem> jItems = new List<JItem>(chest.item.Length);
@@ -237,20 +249,21 @@ namespace PerPlayerLoot
 
             if (!playerChests.ContainsKey(chestId))
             {
-                
-                Chest realChest = Main.chest[chestId];
+                var realChest = Main.chest[chestId];
 
                 // copy the chest data from the real untouched chest
-                Chest fakeChest = new Chest();
-                fakeChest.x = realChest.x;
-                fakeChest.y = realChest.y;
+                var fakeChest = new Chest
+                {
+                    x = realChest.x,
+                    y = realChest.y
+                };
                 realChest.item.CopyTo(fakeChest.item, 0);
 
                 // save it in the fake chest list
                 fakeChestsMap[playerUuid][chestId] = fakeChest;
 
                 // save the fake chests list to disk
-                SaveFakeChests();
+                SaveFakeChests(playerUuid, chestId);
 
                 return fakeChest;
             }
